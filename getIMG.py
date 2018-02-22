@@ -27,22 +27,23 @@ def getImg(index, name_en, prepath='test'):
     imgname = os.path.join(prepath, imgname)
     imgurl="http://img.fgowiki.com/fgo/card/servant/{:03d}{}.png".format(index, i)
     #print("Downloading {} from {}".format(imgname, imgurl))
-    urllib.request.urlretrieve(imgurl, imgname)
-    print("Downloaded {} from {}".format(imgname, imgurl))
+    try:
+      urllib.request.urlretrieve(imgurl, imgname)
+      print("Downloaded {} from {}".format(imgname, imgurl))
+    except urllib.error.HTTPError:
+      print("404 {}".format(imgurl))
 
-name_index = open("name_index.txt", 'w')
-for index in range(1, 201):
+name_index = open("name_index_mp.txt", 'w')
+def job(index):
   name = getName(index)
   name_index.write("{:03d} {}\n".format(index, name))
   ns = name.split(',')
   name_en = ns[2]
   getImg(index, name_en, prepath='img')
-#print(getName(200))
-#print(getName(1))
-#for name in nameRe:
-#    urllib.request.urlretrieve(imgurl,'{}{}.png'.format(name,x))
-#    x=x+1
-#  return name
-#html=gethtml("http://img.fgowiki.com/fgo/card/servant/200D.png)
-#print(getImg(html))
 
+from multiprocessing import Pool
+from multiprocessing.dummy import Pool as ThreadPool
+pool = ThreadPool(16)
+indexes = list(range(1, 201))
+pool.map(job, indexes)
+pool.close()
